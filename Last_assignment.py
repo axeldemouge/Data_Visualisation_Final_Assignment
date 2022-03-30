@@ -43,7 +43,8 @@ def loadGeo():
 @st.cache
 def loadImage():
 	return 'map.png'
-#geo_df = loadGeo()
+
+geo_df = loadGeo()
 
 #geo_df['geometry'] = geo_df['geometry'].apply(wkt.loads)
 #gdf = gpd.GeoDataFrame(geo_df, crs='epsg:4326')
@@ -177,21 +178,34 @@ def star_chart(df, key1, key2):
 	
 @st.cache(allow_output_mutation = True)
 def geo_chart(df):
-	geochart = alt.Chart(df).mark_geoshape().encode( 
-		color= alt.condition("datum.avg_rating == '0'", alt.value('whitesmoke'), alt.Color(field = "avg_rating",type = "quantitative",
-																					 scale= alt.Scale(domain=[2.86 , df.avg_rating.max()], scheme='browns', type = 'linear'), legend=alt.Legend(title="Rating",labelFontSize = 20,symbolSize = 20,titleFontSize=20))),
-		tooltip=[alt.Tooltip('name:N', title = 'Country bean producer'),
-		   alt.Tooltip('avg_rating:Q', title= 'Average rating')]
-		).properties(
-			title='Countries chocolate beans average rating',
-			projection={"type":'mercator'},
-			width=1500,
-			height=800
-			).configure_title(
-				fontSize=40,
-				align='center'
-				)
-	return geochart
+	fig = go.Figure(data=go.Choropleth(
+    locations = geo_df['iso_a3'],
+    z = geo_df['avg_rating'],
+    text = geo_df['name'],
+    colorscale = 'blues',
+    autocolorscale=False,
+    reversescale=False,
+    marker_line_color='darkgray',
+    marker_line_width=0.5,
+    zmin = geo_df.avg_rating.min(),
+    zmax = geo_df.avg_rating.max(),
+    colorbar_title = 'Rating',
+	))
+
+	fig.update_layout(
+	    title_text='Average Rating by Cocoa Producing Country',
+	    geo=dict(
+	        landcolor = 'whitesmoke',
+	        showland = True,
+	        showcountries = True,
+	        countrycolor = 'whitesmoke',
+	        showframe=False,
+	        showcoastlines=False,
+	        projection_type='equirectangular'
+	    )
+	)
+	
+	return fig
 
 
 
@@ -204,7 +218,8 @@ if __name__ == '__main__':
 	
 	#Plot Geo data
 	#st.altair_chart(geo_chart(gdf))
-	st.image(world_map)
+	#st.image(world_map)
+	st.plotly_chart(geo_chart(geo_df))
 	
 	st.write('## 2. Bar ratings by number of ingredients')
 	st.write('### Focus by country to select in the sidebar')
@@ -247,6 +262,4 @@ if __name__ == '__main__':
 	
     # Create Star Chart
 	st.plotly_chart(star_chart(df, keys['bean_prod_1'], keys['bean_prod_2']))
-
-
 
