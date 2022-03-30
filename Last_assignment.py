@@ -10,6 +10,7 @@ import altair as alt
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 #import geopandas as gpd
+#from shapely import wkt
 #from dataprep.clean import clean_country
 #from altair import datum
 #from vega_datasets import data
@@ -33,13 +34,21 @@ def loadStar():
 
 @st.cache
 def loadContinent():
-    return pd.read_csv('continents.csv')
+    return pd.read_csv('Countries-Continents.csv')
 
 @st.cache
 def loadGeo():
-    return pd.read_csv('geo_data.csv')
+    return pd.read_csv('geo_data.csv', sep='\t', header=None, names= ['pop_est', 'continent', 'name', 'iso_a3', 'gdp_md_est', 'geometry', 'avg_rating'])
 
-geo_df = loadGeo()
+@st.cache
+def loadImage():
+	return 'map.png'
+#geo_df = loadGeo()
+
+#geo_df['geometry'] = geo_df['geometry'].apply(wkt.loads)
+#gdf = gpd.GeoDataFrame(geo_df, crs='epsg:4326')
+
+world_map = loadImage()
 star_df = loadStar()
 continents = loadContinent()
 
@@ -169,19 +178,19 @@ def star_chart(df, key1, key2):
 @st.cache(allow_output_mutation = True)
 def geo_chart(df):
 	geochart = alt.Chart(df).mark_geoshape().encode( 
-	    color= alt.condition("datum.avg_rating == '0'", alt.value('whitesmoke'), alt.Color(field = "avg_rating",type = "quantitative",
-	                    scale= alt.Scale(domain=[2.86 , df.avg_rating.max()], scheme='browns', type = 'linear'), legend=alt.Legend(title="Rating",labelFontSize = 20,symbolSize = 20,titleFontSize=20))),
-	    tooltip=[alt.Tooltip('name:N', title = 'Country bean producer'),
-	             alt.Tooltip('avg_rating:Q', title= 'Average rating')]
-	).properties(
-	    title='Countries chocolate beans average rating',
-	    projection={"type":'mercator'},
-	    width=900,
-	    height=500
-	).configure_title(
-	    fontSize=40,
-	    align='center'
-	)
+		color= alt.condition("datum.avg_rating == '0'", alt.value('whitesmoke'), alt.Color(field = "avg_rating",type = "quantitative",
+																					 scale= alt.Scale(domain=[2.86 , df.avg_rating.max()], scheme='browns', type = 'linear'), legend=alt.Legend(title="Rating",labelFontSize = 20,symbolSize = 20,titleFontSize=20))),
+		tooltip=[alt.Tooltip('name:N', title = 'Country bean producer'),
+		   alt.Tooltip('avg_rating:Q', title= 'Average rating')]
+		).properties(
+			title='Countries chocolate beans average rating',
+			projection={"type":'mercator'},
+			width=1500,
+			height=800
+			).configure_title(
+				fontSize=40,
+				align='center'
+				)
 	return geochart
 
 
@@ -194,7 +203,11 @@ if __name__ == '__main__':
 	geo_df = loadGeo()
 	
 	#Plot Geo data
-	st.altair_chart(geo_chart(geo_df))
+	#st.altair_chart(geo_chart(gdf))
+	st.image(world_map)
+	
+	st.write('## 2. Bar ratings by number of ingredients')
+	st.write('### Focus by country to select in the sidebar')
 
 	# Create a new dataframe that contains bean use counts.
 	df_bean_use_counts = df.groupby('country_bean_origin').count()
@@ -229,6 +242,11 @@ if __name__ == '__main__':
 	count_2       = df_bean_use_counts['rating'].loc[second_bean_prod]
 	text_subtitle.markdown(f'Their beans were used in **{count_2}** bars.')
     
+	st.write('## 3. Ingredient repartition in the country and its continent')
+	st.write('### Focus by country to select in the sidebar')
+	
     # Create Star Chart
 	st.plotly_chart(star_chart(df, keys['bean_prod_1'], keys['bean_prod_2']))
+
+
 
