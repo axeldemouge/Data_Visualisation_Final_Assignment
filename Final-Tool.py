@@ -17,7 +17,7 @@ def loadContinent():
 # Load second dataset needed for the first sub-component.
 @st.cache
 def loadGeo():
-	return pd.read_csv('geo_data.csv', sep = '\t', header = None, names = ['pop_est', 'continent', 'name', 'iso_a3',
+	return pd.read_csv('Geo-Data.csv', sep = '\t', header = None, names = ['pop_est', 'continent', 'name', 'iso_a3',
 	                                                                       'gdp_md_est', 'geometry', 'avg_rating'])
 
 # Load image needed for the first sub-component.
@@ -28,7 +28,7 @@ def loadImage():
 # Load dataset needed for the third sub-component.
 @st.cache
 def loadStar():
-	return pd.read_csv('Star_chart_data.csv')
+	return pd.read_csv('Star-Chart-Data.csv')
 
 @st.cache(allow_output_mutation = True)
 def ingredients_ratings_chart(df, key):
